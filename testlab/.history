@@ -19,4 +19,5 @@ k run nginx --image=nginx --dry-run=client -o yaml >nginx.yaml
 k get pods
 k apply -f nginx.yaml
 k exec -it my-nginx -- /bin/bash
+k port-forward --address 0.0.0.0 pods/mealie-799f5c9d55-krscb 9000
 
