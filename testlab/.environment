@@ -1,0 +1,12 @@
+kubectl config use-context rancher-desktop
+#kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
+alias k=kubectl
+complete -o default -F __start_kubectl k
+
+export HISTFILE=$PWD/.bash_history
+
+# make sure the vim filetype plugin is active, thenadd this to your ~/.vimrc:
+# autocmd FileType yaml setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab autoindent smartindent
+# alternatively create a file ~/.vim/after/ftplugin/yaml.vim with these commands
+# before pasting from clipboard:
+# 	:set paste 

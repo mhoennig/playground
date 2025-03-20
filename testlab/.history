@@ -1,0 +1,22 @@
+k get pods -A
+k get pods --all-namespaces
+k get namespaces
+k get pods
+k run --help
+k run my-nginx --image=nginx
+k -h | grep delete
+k delete my-nginx
+k delete pod my-nginx
+k get pod nginx
+k run my-nginx --image=nginx
+k get pod my-nginx
+k get pod my-nginx -o yaml | less
+k edit pod my-nginx
+k edit pod my-nginx
+k run nginx-yaml --image=nginx --dry-run=client -o yaml
+k run nginx-yaml --image=nginx --dry-run=server -o yaml
+k run nginx --image=nginx --dry-run=client -o yaml >nginx.yaml
+k get pods
+k apply -f nginx.yaml
+k exec -it my-nginx -- /bin/bash
+
