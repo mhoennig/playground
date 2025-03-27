@@ -1,3 +1,4 @@
+rdctl start
 k get pods -A
 k get pods --all-namespaces
 k get namespaces

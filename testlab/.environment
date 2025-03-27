@@ -2,8 +2,29 @@ kubectl config use-context rancher-desktop
 #kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
 alias k=kubectl
 complete -o default -F __start_kubectl k
+source <(helm completion bash)
+
+function kPortForwards() {
+	kubectl get svc -n homarr -o json "$@" | 
+		jq '.items[] | {name:.metadata.name, p:.spec.ports[] } | select( .p.nodePort != null ) | "\(.name): localhost:\(.p.nodePort) -> \(.p.port) -> \(.p.targetPort)"'
+}
+
+alias k-port-forwards=kPortForwards
 
 export HISTFILE=$PWD/.bash_history
+
+export POD_NAME=$(kubectl get pods --namespace homarr -l "app.kubernetes.io/name=homarr,app.kubernetes.io/instance=homarr" -o jsonpath="{.items[0].metadata.name}")
+export CONTAINER_PORT=$(kubectl get pod --namespace homarr $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+echo "Visit http://127.0.0.1:8080 to use your application"
+kubectl --namespace homarr port-forward $POD_NAME 8080:$CONTAINER_PORT
+
+
+echo "if Rancher Desktop is not runnning, use: rdctl start"
+if [ -z "$1" ]; then
+	echo "add the default namespace name to configure it automatically"
+else
+	kubectl config set-context --current --namespace=$1
+fi
 
 # make sure the vim filetype plugin is active, thenadd this to your ~/.vimrc:
 # autocmd FileType yaml setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab autoindent smartindent

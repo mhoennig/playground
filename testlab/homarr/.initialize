@@ -1,0 +1,25 @@
+kubectl create namespace homarr
+kubectl create secret generic db-secret \
+	--from-literal=db-encryption-key='597171fe5103489b52ce71936728cc395267839b4d5d7b4b7b486d8ce31d295a' \
+	--namespace homarr # example secret
+
+cat >values.yaml <<eof
+env:
+  # -- Your local time zone
+  TZ: "Europe/Amsterdam"
+
+persistence:
+  homarrDatabase:
+    enabled: true
+    #storageClassName: "default"
+    size: "1Gi"
+
+# Service configuration
+service:
+  # -- Enable service
+  enabled: true
+  # -- Service type
+  type: LoadBalancer
+eof
+
+helm install homarr homarr-labs/homarr -f values.yaml -n homarr

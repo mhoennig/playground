@@ -1,0 +1,4 @@
+. ../.environment
+export SERVICE_IP=$(kubectl get svc --namespace homarr homarr --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
+echo http://$SERVICE_IP:
+

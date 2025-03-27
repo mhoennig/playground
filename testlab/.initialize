@@ -1,0 +1,4 @@
+helm completion bash >x
+sudo cp x /etc/bash_completion.d/helm
+rm x
+
