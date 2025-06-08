@@ -1,1 +1,5 @@
+**/.env
+**/.idea/
+**/.gradio/
 **/.bash_history
+**/*-local.md

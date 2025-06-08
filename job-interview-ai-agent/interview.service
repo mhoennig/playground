@@ -1,0 +1,16 @@
+[Unit]
+Description=Interview Service
+
+[Service]
+Type=simple
+WorkingDirectory={{PWD}}
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+ExecStart={{PWD}}/.venv/bin/python interview.py
+StandardOutput=append:{{HOME}}/var/interview.log
+StandardError=inherit
+Restart=always
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
+
