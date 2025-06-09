@@ -182,9 +182,6 @@ def create_gradio_interface() -> gr.Interface:
     agent = InterviewAgent()
 
     with gr.Blocks(fill_height=True, title=f"{agent.name}'s Virtual Job Interview Chatbot") as interface:
-        
-        agree_state = gr.State(False)
-
         gr.HTML(f"""
             <h1>{agent.name}'s Virtual Job Interview Chatbot</h1>
         """)
@@ -210,7 +207,7 @@ def create_gradio_interface() -> gr.Interface:
 
         chat_group = gr.Group(visible=False)
         with chat_group:
-            chatbot_text = gr.HTML(f"""
+            gr.HTML(f"""
                 <p>Let me introduce myself: I'm a software developer with a focus on Java and the Spring Framework, 
                 but I also have a broad range of professional experience beyond that.</p>
 
@@ -222,13 +219,13 @@ def create_gradio_interface() -> gr.Interface:
             chatbot = gr.Chatbot(
                 scale=1,
                 value=[{"role": "assistant", "content": f"Hello, I am {agent.name}. How can I help you today?"}],
-                    type="messages"
+                type="messages"
             )
-        gr.ChatInterface(
-            fn=agent.chat,
-            chatbot=chatbot,
-            type="messages"
-        )        
+            gr.ChatInterface(
+                fn=agent.chat,
+                chatbot=chatbot,
+                type="messages"
+            )
 
         # Toggle chat and consent elements
         start_button.click(
