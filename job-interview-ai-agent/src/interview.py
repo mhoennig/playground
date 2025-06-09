@@ -170,23 +170,74 @@ class InterviewAgent:
         }
         return responses.get(language, responses["English"])
 
+def consent(agreed):
+    """Handle consent state changes."""
+    return (
+        gr.update(visible=not agreed),  # consent_group
+        gr.update(visible=agreed)       # chat_group
+    )
+
 def create_gradio_interface() -> gr.Interface:
     """Create and configure the Gradio interface."""
     agent = InterviewAgent()
-    
-    return gr.ChatInterface(
-        agent.chat,
-        title=f"Job Interview with {agent.name}",
-        description=f"Chat with {agent.name} about their career, skills, and experience. "
-                   f"You can ask questions in {agent.known_languages_str}.",
-        examples=[
-            ["What is your background in software development?"],
-            ["What programming languages do you know best?"],
-            ["deutsch, bitte"],
-            ["What are your career goals?"]
-        ],
-        theme="soft"
-    )
+
+    with gr.Blocks(fill_height=True, title=f"{agent.name}'s Virtual Job Interview Chatbot") as interface:
+        
+        agree_state = gr.State(False)
+
+        gr.HTML(f"""
+            <h1>{agent.name}'s Virtual Job Interview Chatbot</h1>
+        """)
+
+        consent_group = gr.Group(visible=True)
+        with consent_group:
+            consent_text = gr.HTML(f"""
+                <p>I'm not a really {agent.name}, but a chatbot based on AI/LLM workflows 
+                    using <strong><i>{settings.answer_generator.model_name}</i></strong> (for generation) 
+                    and <strong><i>{settings.answer_evaluator.model_name}</i></strong> (for evaluation) 
+                    with some background information on my developer <strong><i>{agent.name}</i></strong>.</p>
+                <p>No liability is assumed for the accuracy or consequences of any responses provided by this chatbot.</p>
+                
+                <h2>Datenschutzhinweis</h2>
+                
+                <p>Bitte bestätigen Sie, dass Sie mit der Verarbeitung Ihrer Daten im Rahmen des Chats einverstanden sind.</p>
+
+                <p>Das beinhaltet auch die Übertragung Ihrer Eingaben an die Betreiber der obigen LLM-Modelle,
+                mit Sitz in den USA also außerhalb der EU.</p>
+                """)
+            consent_checkbox = gr.Checkbox(label="Ich stimme der Datenschutzerklärung zu", value=False)
+            start_button = gr.Button("Chat starten")
+
+        chat_group = gr.Group(visible=False)
+        with chat_group:
+            chatbot_text = gr.HTML(f"""
+                <p>Let me introduce myself: I'm a software developer with a focus on Java and the Spring Framework, 
+                but I also have a broad range of professional experience beyond that.</p>
+
+                <p>Do you have an interesting freelance project or a full-time position for me?
+                Feel free to share the details of your project or position -- I'd be happy to start with a virtual interview.</p>
+
+                <p>Besides 🇺🇸/🇬🇧 English, you can also talk to me in 🇩🇪/🇦🇹/🇨🇭 German, 🇫🇷/🇨🇭 French, 🇪🇸 Spanish and 🇳🇱 Dutch.</p>
+                """)   
+            chatbot = gr.Chatbot(
+                scale=1,
+                value=[{"role": "assistant", "content": f"Hello, I am {agent.name}. How can I help you today?"}],
+                    type="messages"
+            )
+        gr.ChatInterface(
+            fn=agent.chat,
+            chatbot=chatbot,
+            type="messages"
+        )        
+
+        # Toggle chat and consent elements
+        start_button.click(
+            consent,
+            inputs=[consent_checkbox],
+            outputs=[consent_group, chat_group]
+        )
+
+    return interface
 
 def main():
     """Main entry point for the application."""
@@ -194,7 +245,7 @@ def main():
     interface.launch(
         server_name="0.0.0.0",
         server_port=settings.GRADIO_PORT,
-        share=True
+        # share=True
     )
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ class LLMService:
             messages=messages
         )
         content = response.choices[0].message.content
-        return QuestionMetadata.parse_raw(content)
+        return QuestionMetadata.model_validate_json(content)
     
     def generate_answer(self, message: str, history: List[Dict[str, str]], system_prompt: str) -> str:
         """Generate an answer using the answer generator."""
@@ -70,7 +70,7 @@ class LLMService:
                 - False, if more information is needed
                 if in doubt, tend to 'True'
             - language: in which the question was phrased (use the English term for that language)
-            - languageReason: explain why the value for language was chosen
+            - language_reason: explain why the value for language was chosen
             - category: determine into which category the question belongs:
                 "career", "knowlege", "hobbies", "health", "political" "personal", "other"
 
