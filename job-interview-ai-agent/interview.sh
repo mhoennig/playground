@@ -14,7 +14,7 @@ read_char() {
 }
 
 while true; do
-    .venv/bin/python interview.py
+    .venv/bin/python -m src.main
     exit_code=$?
 
     if [ "$exit_code" -ne 0 ]; then

@@ -1,0 +1,16 @@
+"""
+Main entry point for the Job Interview AI Agent.
+"""
+from .interview import create_gradio_interface
+
+def main():
+    """Main entry point for the application."""
+    interface = create_gradio_interface()
+    interface.launch(
+        server_name="0.0.0.0",
+        server_port=settings.PORT,
+        share=True
+    )
+
+if __name__ == "__main__":
+    main() 

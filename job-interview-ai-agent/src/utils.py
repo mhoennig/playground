@@ -1,0 +1,26 @@
+"""
+Utility functions for the Job Interview AI Agent.
+"""
+from typing import List
+import os
+
+def human_readable_list(items: List[str], quote: str = "") -> str:
+    """Convert a list to a human-readable string."""
+    if len(quote) > 0:
+        items = [f'{quote}{item}{quote}' for item in items]
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    return ", ".join(items[:-1]) + " and " + items[-1]
+
+def read_markdown_file(base_name: str) -> str:
+    """Read content from a markdown file with local override support."""
+    for suffix in ["-local.md", "-default.md"]:
+        path = f"{base_name}{suffix}"
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                print(f"using: {path}")
+                return f.read()
+    print(f"not found: {base_name}-(local|default.md)")
+    return "" 

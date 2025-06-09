@@ -1,5 +1,5 @@
 APP_NAME := interview
-BUNDLE_FILES := requirements.txt index.html $(APP_NAME).py $(APP_NAME).service $(APP_NAME).sh data/*.md
+BUNDLE_FILES := requirements.txt index.html src/**/*.py $(APP_NAME).service $(APP_NAME).sh data/*.md
 
 REQUIRED_TOOLS := awk sed python3 systemctl journalctl
 SERVICE_DIR := $(HOME)/.config/systemd/user
@@ -69,9 +69,10 @@ requirements.txt: check-tools
 
 ## (re-) initialized the Python virtual environment (.venv)
 venv: requirements.txt
-	@test -d .venv || python3 -m venv .venv
-	. .venv/bin/activate && pip install --upgrade pip
-	. .venv/bin/activate && pip install -r requirements.txt
+	@if [ ! -d .venv ]; then python3 -m venv .venv; fi
+	@. .venv/bin/activate && \
+		pip install --upgrade pip && \
+		pip install -r requirements.txt
 	@echo
 	@echo "Initialized. Use 'make clean' to reset initialization."
 	@echo "Please create a .env file with the properties PORT and NAME, if you don't want the defaults."
