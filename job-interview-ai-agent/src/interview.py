@@ -31,14 +31,19 @@ class InterviewAgent:
     
     def _load_profile_data(self) -> dict:
         """Load all profile data from markdown files."""
+        defaults = {
+            "general": "I am a software developer with experience in various technologies.",
+            "profile": "I am a professional software developer.",
+            "career": "I have worked on various software development projects.",
+            "knowledge": "I am proficient in several programming languages and frameworks.",
+            "personal": "I am passionate about technology and continuous learning.",
+            "hobbies": "I enjoy coding and learning new technologies.",
+            "other": "I am always interested in new challenges and opportunities."
+        }
+        
         return {
-            "general": read_markdown_file("data/general"),
-            "profile": read_markdown_file("data/profile"),
-            "career": read_markdown_file("data/career"),
-            "knowledge": read_markdown_file("data/knowledge"),
-            "personal": read_markdown_file("data/personal"),
-            "hobbies": read_markdown_file("data/hobbies"),
-            "other": read_markdown_file("data/other")
+            key: read_markdown_file(f"data/{key}", default_content=value)
+            for key, value in defaults.items()
         }
     
     def _extract_name(self) -> str:
@@ -188,7 +193,7 @@ def main():
     interface = create_gradio_interface()
     interface.launch(
         server_name="0.0.0.0",
-        server_port=settings.PORT,
+        server_port=settings.GRADIO_PORT,
         share=True
     )
 

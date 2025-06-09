@@ -5,7 +5,7 @@ Description=Interview Service
 Type=simple
 WorkingDirectory={{PWD}}
 Environment="PATH=/usr/local/bin:/usr/bin:/bin"
-ExecStart={{PWD}}/.venv/bin/python interview.py
+ExecStart=.venv/bin/python -m src.main
 StandardOutput=append:{{HOME}}/var/interview.log
 StandardError=inherit
 Restart=always

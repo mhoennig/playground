@@ -5,7 +5,7 @@ REQUIRED_TOOLS := awk sed python3 systemctl journalctl
 SERVICE_DIR := $(HOME)/.config/systemd/user
 SERVICE_FILE := $(SERVICE_DIR)/$(APP_NAME).service
 PWD := $(shell pwd)
-PORT := $(shell grep ^PORT .env | cut -d= -f2)
+GRADIO_PORT := $(shell grep ^GRADIO_PORT .env | cut -d= -f2)
 LOCAL_DATA := $(shell grep ^LOCAL_DATA .env | cut -d= -f2)
 PROD_TARGET := $(shell grep ^PROD_TARGET .env | cut -d= -f2)
 
@@ -85,11 +85,11 @@ run: .venv
 	sh interview.sh
 
 .htaccess:
-	@echo "creating proxy in .htaccess using port $(PORT)"
+	@echo "creating proxy in .htaccess using port $(GRADIO_PORT)"
 	@echo "DirectoryIndex disabled" >.htaccess
 	@echo "RewriteEngine On" >> .htaccess
 	@echo "RewriteBase /" >> .htaccess
-	@echo "RewriteRule ^(.*)$$ http://127.0.0.1:$(PORT)/\$$1 [proxy,last]" >> .htaccess
+	@echo "RewriteRule ^(.*)$$ http://127.0.0.1:$(GRADIO_PORT)/\$$1 [proxy,last]" >> .htaccess
 
 ## creates the systemd user service
 service: check-tools

@@ -1,7 +1,7 @@
 """
 Configuration management for the Job Interview AI Agent.
 """
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 import os
@@ -17,10 +17,15 @@ class LLMConfig(BaseModel):
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
-    PORT: int = 17860
-    NAME: str
-    OPENAI_API_KEY: str
-    GOOGLE_API_KEY: str
+    GRADIO_PORT: int = 7860
+    NAME: str = "AI Interview Agent"
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
+    DEEPSEEK_API_KEY: str | None = None
+    ANTHROPIC_API_KEY: str | None = None
+    GROQ_API_KEY: str | None = None
+    LOCAL_DATA: str | None = None
+    PROD_TARGET: str | None = None
     
     # LLM configurations
     answer_generator: LLMConfig = LLMConfig(
