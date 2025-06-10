@@ -180,15 +180,17 @@ def consent(agreed):
 def create_gradio_interface() -> gr.Interface:
     """Create and configure the Gradio interface."""
     agent = InterviewAgent()
+    title = f"{agent.name}'s Virtual Job Interview Chatbot"
 
-    with gr.Blocks(fill_height=True, title=f"{agent.name}'s Virtual Job Interview Chatbot") as interface:
-        gr.HTML(f"""
-            <h1>{agent.name}'s Virtual Job Interview Chatbot</h1>
-        """)
+    with gr.Blocks(
+        fill_height=True,
+        title=title
+    ) as interface:
+        gr.HTML(f"<h1>{title}</h1>")
 
         consent_group = gr.Group(visible=True)
         with consent_group:
-            consent_text = gr.HTML(f"""
+            gr.HTML(f"""
                 <p>I'm not a really {agent.name}, but a chatbot based on AI/LLM workflows 
                     using <strong><i>{settings.answer_generator.model_name}</i></strong> (for generation) 
                     and <strong><i>{settings.answer_evaluator.model_name}</i></strong> (for evaluation) 
@@ -235,15 +237,3 @@ def create_gradio_interface() -> gr.Interface:
         )
 
     return interface
-
-def main():
-    """Main entry point for the application."""
-    interface = create_gradio_interface()
-    interface.launch(
-        server_name="0.0.0.0",
-        server_port=settings.GRADIO_PORT,
-        # share=True
-    )
-
-if __name__ == "__main__":
-    main()

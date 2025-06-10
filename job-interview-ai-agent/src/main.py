@@ -6,11 +6,10 @@ from .config import settings
 
 def main():
     """Main entry point for the application."""
-    interface = create_gradio_interface()
-    interface.launch(
-        server_name="0.0.0.0",
+    create_gradio_interface().launch(
+        server_name="127.0.0.1",
         server_port=settings.GRADIO_PORT,
-        share=True
+        share=False
     )
 
 if __name__ == "__main__":
