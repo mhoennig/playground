@@ -1,4 +1,18 @@
 #!/bin/sh
+# A script which runs the app locally just for testing purposes.
+# It will restart the app if it crashes, and it will exit if the user presses Ctrl-C.
+
+# Function to cleanup on exit
+cleanup() {
+    if [ -n "$python_pid" ]; then
+        echo "Cleaning up..."
+        kill $python_pid 2>/dev/null || true
+    fi
+    exit 0
+}
+
+# Set up trap for Ctrl-C
+trap cleanup INT
 
 # substitute for read -n which does not exist in a simple sh
 read_char() {
