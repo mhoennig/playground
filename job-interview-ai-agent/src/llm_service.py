@@ -25,15 +25,15 @@ class LLMService:
         """Analyze question metadata using the answer generator."""
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "system", "content": self._get_metadata_prompt()},
-            {"role": "user", "content": question}
+            {"role": "user", "content": question},
+            {"role": "user", "content": self._get_metadata_prompt()},
         ]
-        
         response = self.answer_generator.chat.completions.create(
             model=settings.answer_generator.model_name,
             messages=messages
         )
         content = response.choices[0].message.content
+        print(f"metadata: {content}")
         return QuestionMetadata.model_validate_json(content)
     
     def generate_answer(self, message: str, history: List[Dict[str, str]], system_prompt: str) -> str:
@@ -57,7 +57,9 @@ class LLMService:
             messages=messages,
             response_format=Evaluation
         )
-        return response.choices[0].message.parsed
+        parsed = response.choices[0].message.parsed
+        print(f"evaluation: {parsed}")
+        return parsed
     
     def _get_metadata_prompt(self) -> str:
         """Get the prompt for metadata analysis."""
@@ -65,16 +67,28 @@ class LLMService:
             Respond just with the following metadata about the user question:
 
             - question: the question itself
-            - answerable: True/False
-                - True: if it's possible to answer the question with the provided information
-                - False, if more information is needed
-                if in doubt, tend to 'True'
+            - coverage: Percentage (0-100)
+                - 100%: if background information regarding this question is fully given 
+                - 70%: if sufficient background information regarding this question is given
+                - 60%: if there is just vague background information regarding this question
+                - 50%: if you're unsure if sufficient background information is given regarding this question
+                - 30%: if very insufficient background information regarding this question is given
+                - 0%: if no background information regarding this question is given
+                If the topic of the question is part of the background information, then the coverage percentage should be at least 50%.
+                Only if there is absolutely no information about the topic of the question, then the coverage percentage should be below 30%.
+                Legal issues not to answer are irrelevant for this measure, just answer if information is given that could be used to answer the question.
+                If the result for coverage is 0%, then doublecheck if there is really no background information available about the topic of the question.
+            - recruiter: Percentage (0-100)
+                - 100%: if the question is a typical question asked by a recruiter in Germany
+                - 50%: if the question is a question that a recruiter would ask in Germany, but not very typical
+                - 0%: if the question is a question that a recruiter would never ask in Germany
+                Also consider the German laws which might restrict the questions that recruiter should not ask
+                and an applicant must not even answer correctly.
             - language: in which the question was phrased (use the English term for that language)
-            - language_reason: explain why the value for language was chosen
             - category: determine into which category the question belongs:
-                "career", "knowlege", "hobbies", "health", "political" "personal", "other"
+                "career", "profile", "knowlege", "hobbies", "health", "political", "personal", "other"
 
-            Return the metadata as JSON.
+            Return the metadata as pureand proper JSON without any additional markup.
             """
     
     def _get_evaluation_prompt(self, reply: str, message: str, history: List[Dict[str, str]]) -> str:
@@ -82,4 +96,5 @@ class LLMService:
         return f"Here's the conversation between the User and the Agent: \n\n{history}\n\n" + \
                f"Here's the latest message from the User: \n\n{message}\n\n" + \
                f"Here's the latest response from the Agent: \n\n{reply}\n\n" + \
-               f"Please evaluate the response, replying with whether it is acceptable and your feedback." 
+               f"Please evaluate the response, replying with whether it is acceptable and your feedback.\n\n" + \
+               f"Jusge harshly, if the response does not look perfect."

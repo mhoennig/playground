@@ -7,14 +7,15 @@ from typing import List, Optional
 class Evaluation(BaseModel):
     """Model for evaluating chat responses."""
     is_acceptable: bool
+    perfection: int
     feedback: str
 
 class QuestionMetadata(BaseModel):
     """Model for question analysis metadata."""
     question: str
-    answerable: bool
+    coverage: int
+    recruiter: int
     language: str
-    language_reason: str
     category: str
 
 class ChatMessage(BaseModel):

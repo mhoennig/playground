@@ -14,21 +14,15 @@ def human_readable_list(items: List[str], quote: str = "") -> str:
         return items[0]
     return ", ".join(items[:-1]) + " and " + items[-1]
 
-def read_markdown_file(base_name: str, default_content: str = "") -> str:
-    """Read content from a markdown file with local override support.
-    
-    Args:
-        base_name: Base name of the markdown file without suffix
-        default_content: Content to return if no file is found
-        
-    Returns:
-        Content of the markdown file or default_content if not found
+def read_markdown_file(path: str) -> str:
     """
-    for suffix in ["-local.md", "-default.md"]:
-        path = f"{base_name}{suffix}"
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                print(f"using: {path}")
-                return f.read()
-    print(f"not found: {base_name}-(local|default.md)")
-    return default_content 
+    Returns:
+        Content of the markdown file or an empty string if not found
+    """
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            print(f"using: {path}")
+            return f.read()
+                
+    print(f"skipping: {path } -- not found")
+    return "" 
