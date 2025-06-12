@@ -197,7 +197,7 @@ def create_gradio_interface() -> gr.Interface:
     agent = InterviewAgent()
     title = f"{agent.name}'s Virtual Job Interview Chatbot"
 
-    with gr.Blocks(title=title) as interface:
+    with gr.Blocks(title=title, analytics_enabled=False) as interface:
         gr.HTML(f"<h1><a href='https://michael.hoennig.de'>🏠</a> {title}</h1>")
 
         consent_group = gr.Group(visible=True)
@@ -245,7 +245,8 @@ def create_gradio_interface() -> gr.Interface:
             gr.ChatInterface(
                 fn=agent.chat,
                 chatbot=chatbot,
-                type="messages"
+                type="messages",
+                analytics_enabled=False
             )
 
         # Toggle chat and consent elements
@@ -253,6 +254,16 @@ def create_gradio_interface() -> gr.Interface:
             consent,
             inputs=[consent_checkbox],
             outputs=[consent_group, chat_group]
+        )
+
+        gr.HTML(
+            """
+            <footer style="text-align:center; font-size:0.9em; margin-top:2em;">
+                <a href="https://michael.hoennig.de/">Homepage</a> |
+                <a href="https://michael.hoennig.de/imprint.html">Impressum</a> |
+                <a href="https://michael.hoennig.de/datenschutzerklaerung.html">Datenschutzerklärung</a>
+            </footer>
+            """
         )
 
     return interface

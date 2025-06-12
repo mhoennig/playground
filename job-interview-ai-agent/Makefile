@@ -1,5 +1,5 @@
 APP_NAME := interview
-BUNDLE_FILES := requirements.txt index.html src/**/*.py $(APP_NAME).service $(APP_NAME).sh data/*.md
+BUNDLE_FILES := requirements.txt index.html src/*.py $(APP_NAME).service $(APP_NAME).sh data/*.md
 
 REQUIRED_TOOLS := awk sed python3 systemctl journalctl
 SERVICE_DIR := $(HOME)/.config/systemd/user
@@ -61,7 +61,7 @@ Makefile.bundle: check-tools Makefile $(BUNDLE_FILES)
 upload: Makefile.bundle
 	@echo "Uploading bundled Makefile to the server..."
 	@scp Makefile.bundle $(PROD_TARGET)/Makefile
-	@scp $(LOCAL_DATA) $(PROD_TARGET)/data/
+	@scp $(LOCAL_DATA)/*.md $(PROD_TARGET)/data/
 
 # unbundles the files from the Makefile
 requirements.txt: check-tools
@@ -75,7 +75,7 @@ venv: requirements.txt
 		pip install -r requirements.txt
 	@echo
 	@echo "Initialized. Use 'make clean' to reset initialization."
-	@echo "Please create a .env file with the properties PORT and NAME, if you don't want the defaults."
+	@echo "Please make sure all required properties are set in .env, otherwise defaults apply."
 
 ## initially call this target to unbundle the files and initialize the Python .venv
 init: venv
@@ -84,12 +84,13 @@ init: venv
 run: .venv
 	sh interview.sh
 
-.htaccess:
-	@echo "creating proxy in .htaccess using port $(GRADIO_PORT)"
+.htaccess: Makefile
+	@echo "creating proxy in .htaccess using port $$(GRADIO_PORT)"
 	@echo "DirectoryIndex disabled" >.htaccess
-	@echo "RewriteEngine On" >> .htaccess
-	@echo "RewriteBase /" >> .htaccess
-	@echo "RewriteRule ^(.*)$$ http://127.0.0.1:$(GRADIO_PORT)/\$$1 [proxy,last]" >> .htaccess
+	@echo "RewriteEngine On" >>.htaccess
+	@echo "RewriteBase /interview/" >>.htaccess
+	@echo "RequestHeader set Host localhost" >>.htaccess
+	@echo "RewriteRule ^(.*)$$ http://127.0.0.1:$(GRADIO_PORT)/\$$1 [proxy,last]" >>.htaccess
 
 ## creates the systemd user service
 service: check-tools
