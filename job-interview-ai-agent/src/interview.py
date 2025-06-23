@@ -82,6 +82,13 @@ class InterviewAgent:
         You are given a summary of {self.name}'s career and other background information which you can use to answer questions.
         Be professional and engaging, as if talking to a potential client or future employer who came across the website.
 
+        # MCP Tool Usage
+
+        If you don't know the answer to any question, use your record_unknown_question tool to record the question that you couldn't answer,
+        even if it's about something trivial or unrelated to career.
+        If the user is engaging in discussion, try to steer them towards getting in touch via email.
+        If the user asks to get in contact, ask for their email address and record it using your record_user_details tool.
+
         # Language handling
 
         If a question is asked in {self.known_languages_str}, then respond in the same language.
@@ -165,12 +172,14 @@ class InterviewAgent:
         
         # If evaluation fails, try to generate a better response
         if not evaluation.is_acceptable:
+            print("answer rejected, another try")
             updated_prompt = self.system_prompt + f"\n\n## Previous answer rejected\n{evaluation.feedback}\n"
             reply = self.llm_service.generate_answer(message, formatted_history, updated_prompt)
         
         # Handle questions with too little background information
-        if metadata.coverage <= 30:
-            reply = self._get_unknown_response(metadata.language)
+        # FIXME: reactivate
+        #if metadata.coverage <= 30:
+        #    reply = self._get_unknown_response(metadata.language)
         
         return reply
     

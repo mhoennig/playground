@@ -6,6 +6,7 @@ import json
 from openai import OpenAI
 from .config import settings
 from .models import Evaluation, QuestionMetadata, ChatMessage
+from .mcp_tools import handle_mcp_tool_calls, mcp_tools
 
 class LLMService:
     """Service for interacting with Language Models."""
@@ -39,10 +40,26 @@ class LLMService:
     def generate_answer(self, message: str, history: List[Dict[str, str]], system_prompt: str) -> str:
         """Generate an answer using the answer generator."""
         messages = [{"role": "system", "content": system_prompt}] + history + [{"role": "user", "content": message}]
-        response = self.answer_generator.chat.completions.create(
-            model=settings.answer_generator.model_name,
-            messages=messages
-        )
+
+        while True:
+            response = self.answer_generator.chat.completions.create(
+                model=settings.answer_generator.model_name,
+                messages=messages,
+                tools = mcp_tools,
+                tool_choice = "auto"
+            )
+
+            finish_reason = response.choices[0].finish_reason
+            print(f"finish reason({message}): ", finish_reason)
+            if finish_reason == "tool_calls":
+                message = response.choices[0].message
+                tool_calls = message.tool_calls
+                results = handle_mcp_tool_calls(tool_calls)
+                messages.append(message)
+                messages.extend(results)
+            else:
+                break
+
         return response.choices[0].message.content
     
     def evaluate_response(self, reply: str, message: str, history: List[Dict[str, str]], evaluator_prompt: str) -> Evaluation:

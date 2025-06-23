@@ -1,5 +1,5 @@
 APP_NAME := interview
-BUNDLE_FILES := requirements.txt index.html src/*.py $(APP_NAME).service $(APP_NAME).sh data/*.md
+BUNDLE_FILES := requirements.txt index.html src/*.py $(APP_NAME).service $(APP_NAME).sh
 
 REQUIRED_TOOLS := awk sed python3 systemctl journalctl
 SERVICE_DIR := $(HOME)/.config/systemd/user
@@ -48,10 +48,16 @@ help: check-tools
 bundle: Makefile.bundle
 
 Makefile.bundle: check-tools Makefile $(BUNDLE_FILES)
+	@echo "Collecting all data files in the data directory..."
+	@echo rm -rf data
+	@echo mkdir data
+	@echo cp data-default/*.md data/
+	@echo cp $(LOCAL_DATA)/*.md data/
+
 	@echo "Bundling files into this Makefile..."
 	@awk '/^#== BEGIN BUNDLE ==#/{exit} {print}' Makefile > Makefile.bundle
 	@echo '#== BEGIN BUNDLE ==#' >> Makefile.bundle
-	@for f in $(BUNDLE_FILES); do \
+	@for f in $(BUNDLE_FILES) data/*.md; do \
 		echo "# cat > $$f <<'EOF_$$f'" >> Makefile.bundle; \
 		sed 's/^/# /' $$f >> Makefile.bundle; \
 		echo "# EOF_$$f" >> Makefile.bundle; \
@@ -59,12 +65,11 @@ Makefile.bundle: check-tools Makefile $(BUNDLE_FILES)
 
 ## uploads the bundle to the server
 upload: Makefile.bundle
-	@echo "Uploading bundled Makefile to the server..."
-	@scp Makefile.bundle $(PROD_TARGET)/Makefile
-	@scp $(LOCAL_DATA)/*.md $(PROD_TARGET)/data/
+	@echo "Uploading bundled Makefile to $(PROD_TARGET)"
+	scp Makefile.bundle $(PROD_TARGET)/Makefile
 
 # unbundles the files from the Makefile
-requirements.txt: check-tools
+requirements.txt: Makefile check-tools
 	@awk '/^#== BEGIN BUNDLE ==#/{found=1; next} found { sub(/^# ?/, ""); print }' $(MAKEFILE_LIST) | sh; \
 
 ## (re-) initialized the Python virtual environment (.venv)
@@ -139,9 +144,9 @@ uninstall: check-tools
 	@rm -f $(SERVICE_FILE)
 	systemctl --user daemon-reload
 
-## removes all extracted/generated files
+## removes all generated files
 clean: stop
-	@echo rm -f $(BUNDLE_FILES)
+	@rm -f data/*.md
 	@rm -rf .venv 
 
 # ------------------------------------------------------------------------------

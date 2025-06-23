@@ -26,6 +26,17 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str | None = None
     LOCAL_DATA: str | None = None
     PROD_TARGET: str | None = None
+
+    PUSHOVER_USER: str | None = os.getenv("PUSHOVER_USER")
+    PUSHOVER_TOKEN: str | None = os.getenv("PUSHOVER_TOKEN")
+    PUSHOVER_URL: str = "https://api.pushover.net/1/messages.json"
+
+    SMTP_SERVER: str | None = os.getenv("SMTP_SERVER")
+    SMTP_PORT: int | None = os.getenv("SMTP_PORT")
+    SMTP_SENDER: str | None = os.getenv("SMTP_SENDER")
+    SMTP_RECEIVER: str | None = os.getenv("SMTP_RECEIVER")
+    SMTP_USERNAME: str | None = os.getenv("SMTP_USERNAME")
+    SMTP_PASSWORD: str | None = os.getenv("SMTP_PASSWORD")
     
     # LLM configurations
     answer_generator: LLMConfig = LLMConfig(

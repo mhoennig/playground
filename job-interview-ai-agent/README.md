@@ -116,3 +116,8 @@ The application can be configured through the following files:
 - `.env` - Environment variables for ports and paths
 - `interview.service` - Systemd service configuration
 - `.htaccess` - Apache proxy configuration (auto-generated my Makefile)
+
+
+# GDPR Compliance
+
+https://www.jentsch.io/gradio-machine-learning-web-apps-gdpr-kompatibel/
