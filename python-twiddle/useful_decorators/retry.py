@@ -7,34 +7,29 @@ from time import sleep
 
 def retry(retries: int = 3, delay: float = 1) -> Callable:
     """
-    Calls the decorated function, if it fails, it retries with the specified delay.
+    Calls the decorated function, retrying on failure with specified delay.
 
-    :param retries: The max number of retries, 1 means 1 try and 1 retry
-    :param delay: The delay (in seconds) between each retry
-    :return:
+    Args:
+        retries: Maximum number of retries (must be >= 1)
+        delay: Delay in seconds between retries (must be > 0)
     """
-
-    # check arguments
     if retries < 1 or delay <= 0:
-        raise ValueError('retry must be => 1, delay must be > 0')
+        raise ValueError('retry must be >= 1, delay must be > 0')
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            error = None
-            try_number = 0
-            while try_number <= retries:
+            for attempt in range(retries + 1):
                 try:
-                    print(f'{try_number}. try calling {func.__name__}():')
+                    print(f'{attempt}. try calling {func.__name__}():')
                     return func(*args, **kwargs)
-                except Exception as e:
-                    print(f'"{func.__name__}()" failed with {repr(e)} after {retries} retries.')
-                    error = e
-                sleep(delay)
-                try_number += 1
-            raise error
+                except Exception as error:
+                    print(f'"{func.__name__}()" failed with {repr(error)} after {retries} retries.')
+                    if attempt == retries:
+                        raise
+                    sleep(delay)
+            return None  # never reached but avoids warning
         return wrapper
-
     return decorator
 
 @retry(retries=3, delay=1)
