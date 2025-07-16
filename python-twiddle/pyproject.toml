@@ -1,0 +1,7 @@
+[project]
+name = "Python Twiddle"
+description = "just trying out some Python features for learning purposes"
+version = "0.0.2"
+dependencies = [
+    "Deprecated>=1.2.14"
+]
