@@ -3,3 +3,5 @@
 **/.gradio/
 **/.bash_history
 **/*-local.md
+**/.venv/
+**/.vscode/

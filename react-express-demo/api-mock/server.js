@@ -1,14 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 8981;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// API Routes
 app.get('/api/env', (req, res) => {
   // Dummy environment data
   const envData = {
@@ -36,7 +36,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'UP' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Serve all static files from the React build directory
+app.use(express.static(path.join(__dirname, '../build')));
+
+// For any other routes, serve the index.html file
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
+
+// Export the app for Passenger
+module.exports = app;
+
+// Only start the server if this file is run directly
+if (require.main === module) {
+  const PORT = process.env.PORT || 8981;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}

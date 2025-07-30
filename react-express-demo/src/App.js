@@ -29,7 +29,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>React Express Demo</h1>
+        <h1>React Express Demo (App.js)</h1>
       </header>
       <main>
         <h2>Environment Data from API</h2>
