@@ -17,8 +17,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "dotenv -- bash -c 'npm run build && rsync -avz --exclude-from=.gitignore --exclude .git --include build/\\*\\*\\* --include api-mock/\\*\\*\\* --include app.js ./ $SSH_USER@$SSH_HOST:$SSH_PATH/ && ssh $SSH_USER@$SSH_HOST \"cd $SSH_PATH/api-mock && npm install --production\"'",
-    "deploy:dry-run": "dotenv -- bash -c 'npm run build && rsync -avzn --exclude-from=.gitignore --exclude .git --include build/\\*\\*\\* --include api-mock/\\*\\*\\* --include app.js ./ $SSH_USER@$SSH_HOST:$SSH_PATH/'",
     "server": "cd api-mock && npm run dev",
     "dev": "concurrently \"npm run start\" \"npm run server\""
   },

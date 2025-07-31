@@ -1,6 +1,7 @@
-# React Express Demo
+# React+Express Demo
 
-This project demonstrates a React frontend application that fetches data from a Node Express backend API.
+This project demonstrates deployment of a React/Express application in a Hostsharing Managed Webspace.
+It consists of a React frontend that fetches data from a Node Express backend API.
 
 ## Project Structure
 

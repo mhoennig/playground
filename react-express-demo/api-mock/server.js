@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
 
@@ -8,11 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// API Routes
 app.get('/api/env', (req, res) => {
   // Dummy environment data
   const envData = {
-    appName: 'React Express Demo',
+    appName: 'React+Express Demo',
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     serverTime: new Date().toISOString(),
@@ -31,26 +29,15 @@ app.get('/api/env', (req, res) => {
   res.json(envData);
 });
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'UP' });
 });
 
-// Serve all static files from the React build directory
-app.use(express.static(path.join(__dirname, '../build')));
-
-// For any other routes, serve the index.html file
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../build', 'index.html'));
+// start the server
+const PORT = process.env.PORT || 8981;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
-// Export the app for Passenger
+// export for Phusion Passenger
 module.exports = app;
-
-// Only start the server if this file is run directly
-if (require.main === module) {
-  const PORT = process.env.PORT || 8981;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
