@@ -3,7 +3,7 @@ export
 
 SSH_HOME := $(shell ssh $(SSH_USER)@$(SSH_HOST) "echo \$$HOME")
 
-.PHONY:  build deploy-frontend deploy-backend deploy ssh
+.PHONY:  dist deploy-frontend deploy-backend deploy ssh
 
 all: help
 
@@ -14,13 +14,13 @@ help:
 		print "    " desc "\n" \
 	}' Makefile
 
-## builds the React app
-build:
+## builds a distribution of the React app
+dist:
 	npm run build
 	sed -e "s|\$${SSH_HOME}|$(SSH_HOST)|g" \
 		-e "s|\$${SSH_HOME}|$(SSH_HOME)|g" \
 		-e "s|\$${NODE_VERSION}|$(NODE_VERSION)|g" \
-		.htaccess >build/.htaccess
+		.htaccess >dist/.htaccess
 
 ## connects to the server using ssh and changes directory to the domain root
 login:
@@ -61,8 +61,8 @@ install: install-node
 		npm install"
 
 ## syncs frontend files to server
-deploy-frontend: build
-	rsync -avz build/ $(SSH_USER)@$(SSH_HOST):$(SSH_PATH)/htdocs-ssl/
+deploy-frontend: dist
+	rsync -avz dist/ $(SSH_USER)@$(SSH_HOST):$(SSH_PATH)/htdocs-ssl/
 	ssh $(SSH_USER)@$(SSH_HOST) "cd $(SSH_PATH) && mv htdocs-ssl/.htaccess ." # hack
 
 ## syncs backend files to server
@@ -76,3 +76,4 @@ deploy: deploy-backend deploy-frontend
 ## tells Phusion Passenger NodeJS on the server to restart the backend app
 restart:
 	ssh $(SSH_USER)@$(SSH_HOST) "cd $(SSH_PATH)/app-ssl && passenger-config restart-app /home/$(SSH_PATH)"
+	@echo $(APP_ROOT)
