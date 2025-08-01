@@ -52,22 +52,19 @@ install-node: install-nvm
 		nvm install $(NODE_VERSION); \
 		nvm alias default $(NODE_VERSION)"
 
-## installs the app
-install: install-node
+## syncs frontend files to server
+deploy-frontend: dist
+	@rsync -avz dist/ $(SSH_USER)@$(SSH_HOST):$(SSH_PATH)/htdocs-ssl/
+	@ssh $(SSH_USER)@$(SSH_HOST) "cd $(SSH_PATH) && mv htdocs-ssl/.htaccess ." # hack
+
+## syncs backend files to server
+deploy-backend: install-node
+	@rsync -avz --exclude-from=.gitignore --exclude .git api-mock/ $(SSH_USER)@$(SSH_HOST):$(SSH_PATH)/app-ssl/
 	@ssh $(SSH_USER)@$(SSH_HOST) "\
 		cd $(SSH_PATH)/app-ssl && \
 		. $(SSH_HOME)/.nvm/nvm.sh && \
 		nvm use $(NODE_VERSION) && \
 		npm install"
-
-## syncs frontend files to server
-deploy-frontend: dist
-	rsync -avz dist/ $(SSH_USER)@$(SSH_HOST):$(SSH_PATH)/htdocs-ssl/
-	ssh $(SSH_USER)@$(SSH_HOST) "cd $(SSH_PATH) && mv htdocs-ssl/.htaccess ." # hack
-
-## syncs backend files to server
-deploy-backend:
-	rsync -avz --exclude-from=.gitignore --exclude .git api-mock/ $(SSH_USER)@$(SSH_HOST):$(SSH_PATH)/app-ssl/
 
 ## deploys frontend and backend and installs production dependencies on the server
 deploy: deploy-backend deploy-frontend
