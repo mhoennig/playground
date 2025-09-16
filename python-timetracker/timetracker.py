@@ -128,6 +128,8 @@ def process_table(lines, i, n):
 
     rows = []
     total_minutes = 0
+    # Collect parsed intervals for overlap detection
+    intervals = []
 
     for line in data_lines:
         # ignore separator-like lines that accidentally appear in body
@@ -140,6 +142,16 @@ def process_table(lines, i, n):
         while len(cells) < len(new_header) - 1:
             cells.append('')
         minutes = compute_minutes(cells[time_idx]) if time_idx < len(cells) else None
+        # Track interval for overlap detection (treat end < start as crossing midnight)
+        if minutes is not None:
+            m = TIME_RE.fullmatch(cells[time_idx])
+            if m:
+                h1, m1, h2, m2 = map(int, m.groups())
+                start = h1 * 60 + m1
+                end = h2 * 60 + m2
+                if end < start:
+                    end += 24 * 60
+                intervals.append((start, end, cells[time_idx].strip()))
         dur = hmm(minutes) if minutes is not None else ''
         if minutes is not None:
             total_minutes += minutes
@@ -171,6 +183,20 @@ def process_table(lines, i, n):
             day_str = datetime.strptime(date_str, "%Y-%m-%d").strftime("%A")
         except ValueError:
             day_str = None
+
+    # Overlap detection within a single table (day)
+    if intervals:
+        intervals.sort(key=lambda t: t[0])
+        prev_start, prev_end, prev_span = intervals[0]
+        for cur_start, cur_end, cur_span in intervals[1:]:
+            if cur_start < prev_end:  # overlap (half-open intervals [start, end))
+                day_info = f" for {date_str}" if date_str else ""
+                sys.stderr.write(
+                    f"Error: overlapping time periods{day_info}: '{cur_span}' overlaps with '{prev_span}'.\n"
+                )
+                sys.exit(1)
+            if cur_end > prev_end:
+                prev_start, prev_end, prev_span = cur_start, cur_end, cur_span
 
     # Prepare totals "line below table" cells (all values in bold)
     totals_cells = [''] * len(new_header)
