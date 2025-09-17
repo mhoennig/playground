@@ -54,7 +54,7 @@ def hmm(minutes: int):
 def process_table(lines, i, n):
     """
     Assumes lines[i] is header row (starts with '|') and lines[i+1] is a separator line.
-    Returns (new_lines_for_table_plus_total, next_index_after_original_table_block, processed_bool)
+    Returns (new_lines_for_table_plus_total, next_index_after_original_table_block, processed_bool, task_minutes_dict)
     """
     header = split_row(lines[i])
     # Only process tables that have a 'Time' column:
@@ -65,13 +65,12 @@ def process_table(lines, i, n):
         j = i + 2
         while j < n and lines[j].lstrip().startswith('|'):
             j += 1
-        return lines[i:j], j, False
+        return lines[i:j], j, False, {}
 
     # Find table end
     j = i + 2
     while j < n and lines[j].lstrip().startswith('|'):
         j += 1
-
     # If there is an immediate totals line below, skip it (we'll re-create or update)
     k = j
     # Legacy "Total duration:" single-line summary
@@ -130,6 +129,8 @@ def process_table(lines, i, n):
     total_minutes = 0
     # Collect parsed intervals for overlap detection
     intervals = []
+    # Per-table aggregation by task (second column)
+    task_minutes = {}
 
     for line in data_lines:
         # ignore separator-like lines that accidentally appear in body
@@ -155,6 +156,9 @@ def process_table(lines, i, n):
         dur = hmm(minutes) if minutes is not None else ''
         if minutes is not None:
             total_minutes += minutes
+            # Aggregate by task (second column, index 1 if present)
+            task_key = cells[1].strip() if len(cells) > 1 else ''
+            task_minutes[task_key] = task_minutes.get(task_key, 0) + minutes
         rows.append(cells + [dur])
 
     # Extract date and weekday from the nearest non-empty title line above the table
@@ -237,7 +241,9 @@ def process_table(lines, i, n):
     # Append a single totals line BELOW the table, aligned to the same widths
     out.append(format_row(totals_cells, widths, right_align_indices={dur_idx}))
 
-    return out, end_after_drop, True
+    return out, end_after_drop, True, task_minutes
+
+# ... existing code ...
 
 def process_document(text: str):
     lines = text.splitlines()
@@ -245,6 +251,8 @@ def process_document(text: str):
     i = 0
     out = []
     in_code = False
+    # Global aggregation across all processed tables
+    global_task_minutes = {}
 
     while i < n:
         line = lines[i]
@@ -256,16 +264,76 @@ def process_document(text: str):
             i += 1
             continue
 
+        # Remove previously generated "# Task Totals" section (title + following table)
+        if not in_code and re.match(r'^\s*#\s*Task\s+Totals\s*$', line, re.IGNORECASE):
+            # Skip the title line
+            i += 1
+            # Skip optional blank lines
+            while i < n and lines[i].strip() == '':
+                i += 1
+            # If a Markdown table follows, skip it (header + separator + body)
+            if i + 1 < n and lines[i].lstrip().startswith('|') and is_sep_line(lines[i+1]):
+                i += 2
+                while i < n and lines[i].lstrip().startswith('|'):
+                    i += 1
+            # Also skip a single trailing blank line after the table if present
+            if i < n and lines[i].strip() == '':
+                i += 1
+            continue
+
         # Detect table start (header row + separator row) outside code
         if not in_code and line.lstrip().startswith('|') and i + 1 < n and is_sep_line(lines[i+1]):
-            new_block, next_i, processed = process_table(lines, i, n)
+            new_block, next_i, processed, task_minutes = process_table(lines, i, n)
             out.extend(new_block)
+            # Merge per-table aggregation into global map
+            if processed and task_minutes:
+                for k, v in task_minutes.items():
+                    global_task_minutes[k] = global_task_minutes.get(k, 0) + v
             i = next_i
             continue
 
         # Default: passthrough
         out.append(line)
         i += 1
+
+    # Append summary title and table by task at the end (outside code fences), if any data collected
+    if global_task_minutes:
+        # Ensure exactly one blank line before the title
+        while out and out[-1].strip() == '':
+            out.pop()
+        out.append('')
+        out.append('# Task Totals')
+        out.append('')
+
+        # Prepare table data
+        summary_rows = []
+        header = ['Task', 'Total']
+        # Prepare data rows sorted by task name (case-insensitive)
+        for task in sorted(global_task_minutes.keys(), key=lambda x: (x or '').lower()):
+            summary_rows.append([task, hmm(global_task_minutes[task])])
+
+        # Compute widths
+        widths = [len(h) for h in header]
+        for r in summary_rows:
+            for col, val in enumerate(r):
+                if len(val) > widths[col]:
+                    widths[col] = len(val)
+
+        # Build separator with right alignment for Total column (index 1)
+        sep_cells = []
+        for idx, w in enumerate(widths):
+            w2 = max(3, w)
+            if idx == 1:
+                sep_cells.append('-' * (w2 - 1) + ':')
+            else:
+                sep_cells.append('-' * w2)
+        sep = '| ' + ' | '.join(sep_cells) + ' |'
+
+        # Table
+        out.append(format_row(header, widths, right_align_indices={1}))
+        out.append(sep)
+        for r in summary_rows:
+            out.append(format_row(r, widths, right_align_indices={1}))
 
     return '\n'.join(out)
 
