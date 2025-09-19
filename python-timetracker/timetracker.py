@@ -303,7 +303,6 @@ def process_document(text: str):
             out.pop()
         out.append('')
         out.append('# Task Totals')
-        out.append('')
 
         # Prepare table data
         summary_rows = []
@@ -311,10 +310,13 @@ def process_document(text: str):
         # Prepare data rows sorted by task name (case-insensitive)
         for task in sorted(global_task_minutes.keys(), key=lambda x: (x or '').lower()):
             summary_rows.append([task, hmm(global_task_minutes[task])])
+        # Compute grand total
+        grand_total_minutes = sum(global_task_minutes.values())
+        totals_row = ['**Montly Total**', f'**{hmm(grand_total_minutes)}**']
 
-        # Compute widths
+        # Compute widths (include totals row for sizing)
         widths = [len(h) for h in header]
-        for r in summary_rows:
+        for r in summary_rows + [totals_row]:
             for col, val in enumerate(r):
                 if len(val) > widths[col]:
                     widths[col] = len(val)
@@ -334,6 +336,8 @@ def process_document(text: str):
         out.append(sep)
         for r in summary_rows:
             out.append(format_row(r, widths, right_align_indices={1}))
+        # Append bold totals row at the end
+        out.append(format_row(totals_row, widths, right_align_indices={1}))
 
     return '\n'.join(out)
 
